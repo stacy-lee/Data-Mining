@@ -1,8 +1,6 @@
-
-# coding: utf-8
-
-# In[ ]:
-
+import random
+import re
+from collections import Counter
 import sys
 trainFile = sys.argv[1]
 testFile = sys.argv[2]
@@ -22,11 +20,6 @@ else:
     num_trees = 200
 
 
-# In[1]:
-
-import random
-import re
-from collections import Counter
 def most_common(lst):
     """
     Returns most common value in list
@@ -35,27 +28,20 @@ def most_common(lst):
     return max(lst, key=data.get)
 
 
-# In[456]:
-
 traindf = []
 for line in trainlines:
     traindf.append(line.rstrip('\n'))
-
-
-# In[457]:
 
 testdf = []
 for line in testlines:
     testdf.append(line.rstrip('\n'))
 
 
-# In[458]:
-
 def count(name, value, target_label, labels):
     """
     Returns a dictionary with the all the attributes and a count of their unique values
     """
-    dictionary = {} 
+    dictionary = {}
     for att in name[0]:
         dictionary[att] = {}
     for idx, label in enumerate(labels):
@@ -66,8 +52,6 @@ def count(name, value, target_label, labels):
                 dictionary[name[idx][col]][value[idx][col]] += 1
     return dictionary
 
-
-# In[459]:
 
 def preprocess(data):
     """
@@ -83,11 +67,9 @@ def preprocess(data):
     tups = []
     for line in range(len(data)):
         tups.append(tuple(re.match("(.*):(.*)", data[line][2:]).group().replace(":",",").replace(" ",",").split(",")))
-    
+
     return labels, total, tups
 
-
-# In[460]:
 
 def get_count(labels, tups):
     """
@@ -120,8 +102,6 @@ def get_count(labels, tups):
     return count_class, count_val, attribute_list, attribute_name, attribute_val
 
 
-# In[461]:
-
 def filter_tuples(tuples, a_names, a_values, labels, best, value):
     new_tuples = []
     new_labels = []
@@ -133,16 +113,12 @@ def filter_tuples(tuples, a_names, a_values, labels, best, value):
     return new_tuples, new_labels
 
 
-# In[462]:
-
 def get_values(values, target_att):
     """
     values is a dict; target_att will be splitting attribute for decision tree
     """
     return values[target_att].keys()
 
-
-# In[463]:
 
 def gini(classes, values, target_att, att_value):
     """
@@ -159,8 +135,6 @@ def gini(classes, values, target_att, att_value):
     return f
 
 
-# In[464]:
-
 def gini_split(classes, values, target_att):
     """
     Calculates gini split.
@@ -173,11 +147,9 @@ def gini_split(classes, values, target_att):
     return sum(g_split)
 
 
-# In[465]:
-
 def splitting_attribute(classes, values, att_list):
     """
-    Choose attribute to split on 
+    Choose attribute to split on
     """
     a_list = att_list
     ls = []
@@ -190,11 +162,9 @@ def splitting_attribute(classes, values, att_list):
     return a
 
 
-# In[466]:
-
 def majority_class(classes, labels, target_attr):
     """
-    Returns majority class of target attribute 
+    Returns majority class of target attribute
     """
     count_list = []
     label = []
@@ -211,26 +181,20 @@ def majority_class(classes, labels, target_attr):
     return lab
 
 
-# In[467]:
-
 train_labels, train_total, train_tups = preprocess(traindf)
 train_dc, train_dv, train_attributes, train_name, train_values = get_count(train_labels, train_tups)
 
-
-# In[468]:
 
 test_labels, test_total, test_tups = preprocess(testdf)
 test_dc, test_dv, test_attributes, test_name, test_values = get_count(test_labels, test_tups)
 
 
-# In[469]:
-
 def create_tree(tuples, labels, attributes, depth):
     """
     Returns a new decision tree based on the examples given.
-    """ 
+    """
     max_depth = depth
-#     classes, values, attributes, labels, total, attribute_name, attribute_values = preprocess(data)
+
     dclasses, dvalues, new_attributes, a_names, a_values = get_count(labels, tuples)
 #     Feature Bagging (F = k)
 #     Let F be the number of attributes to be used to determine the split at each node
@@ -249,39 +213,35 @@ def create_tree(tuples, labels, attributes, depth):
         best = splitting_attribute(dclasses, dvalues, F_att)
 #     Label node N with splitting criterion
         tree= {best: {}}
-#     For full split, attribute list = att list −splitting att; //remove splitting attribute 
+#     For full split, attribute list = att list −splitting att; //remove splitting attribute
         if best in new_attributes:
             attr_list = [attr for attr in new_attributes if attr != best]
-#     For each outcome j of splitting criterion // partition tuples, grow subtrees for each partition 
+#     For each outcome j of splitting criterion // partition tuples, grow subtrees for each partition
         for val in get_values(dvalues, best):
-#         Let Dj be the set of data tuples in D satisfying outcome j; // a partition 
+#         Let Dj be the set of data tuples in D satisfying outcome j; // a partition
             new_tuples, new_labels = filter_tuples(tuples, a_names, a_values, labels, best, val)
             subtree = create_tree(new_tuples, new_labels, new_attributes, max_depth)
 #         if Dj is empty then attach a leaf labeled with the majority class in D to node N
             if not subtree:
                 tree[best][val] = majority_class(dclasses, labels, 0)
-#         else attach the node returned by Generate decision tree(Dj, attribute list) to node N; 
+#         else attach the node returned by Generate decision tree(Dj, attribute list) to node N;
             else: tree[best][val] = subtree
 #     endfor
 #     return N;
     return tree
 
 
-# In[470]:
-
 def bootstrap_sample(data):
     """
     Returns a sampling of training data with replacement
-    """ 
+    """
     return random.choices(data, k = int(len(data)*0.9))
 
-
-# In[471]:
 
 def classify(tree, tup, labels):
     """
     Returns class label for each tuple by decision tree classification
-    """ 
+    """
     t = tup
     class_label = tree
     a_name = tuple(tup[index] for index in range(len(tup)) if (index%2 == 0))
@@ -300,15 +260,13 @@ def classify(tree, tup, labels):
     return class_label
 
 
-# In[472]:
-
 def rf(data, m, attributes, depth):
     """
     Bootstrap Aggregation; Returns majority vote from tree models
     data = original training data set
     m = number of tree models to generate
-    test_tup = test tuples to be 
-    """ 
+    test_tup = test tuples to be
+    """
 #     Data Bagging
 #     for i=1 to k do // create k models:
     models = []
@@ -318,52 +276,40 @@ def rf(data, m, attributes, depth):
         labels, total, tuples = preprocess(Di)
 #         use Di and the learning scheme to derive a model, Mi;
         models.append(create_tree(tuples, labels, attributes, depth))
-    
+
     return models
 
-
-# In[482]:
 
 rfmodels = rf(traindf, num_trees, train_attributes, 0)
 
 
-# In[483]:
-
 def predict_labels(models, test_tuples, trn_labels):
     """
     Returns prediction of class labels
-    """ 
+    """
     labels = []
     i = 0
     while(i != len(test_tuples)):
         vote = []
         for m in range(len(models)):
             vote.append(classify(models[m], test_tuples[i], trn_labels))
-         
+
         labels.append(most_common(vote))
         i+=1
-    
+
     return labels
 
 
-# In[484]:
-
 predictions = predict_labels(rfmodels, test_tups, train_labels)
 
-
-# In[485]:
 
 k = len(set(train_labels))
 uniq_labels= sorted(list(set(train_labels)))
 
 
-# In[486]:
-
 actual_idx = [uniq_labels.index(test_labels[x]) for x in range(len(test_labels))]
 predicted_idx = [uniq_labels.index(predictions[x]) for x in range(len(predictions))]
 
-
-# In[487]:
 
 combine_idx =[]
 for i in range(len(actual_idx)):
@@ -384,12 +330,10 @@ while(l!=len(uniq_labels)):
     l +=1
 
 
-# In[488]:
-
 def createMatrix(nrow, ncol, dataList):
     """
     Returns a matrix in list form
-    """ 
+    """
     matrix = []
     for i in range(nrow):
         rowList = []
@@ -399,13 +343,8 @@ def createMatrix(nrow, ncol, dataList):
     return matrix
 
 
-# In[490]:
-
 confusion_matrix = createMatrix(k, k, row)
 
 
-# In[ ]:
-
 for row in confusion_matrix:
     print(' '.join(map(str,row)))
-

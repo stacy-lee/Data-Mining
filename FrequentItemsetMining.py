@@ -1,8 +1,3 @@
-
-# coding: utf-8
-
-# In[1]:
-
 # Import data and set it up for data manipulation
 get_ipython().magic('matplotlib inline')
 import pandas as pd
@@ -12,7 +7,7 @@ f = open('data.txt','r')
 contents = pd.Series(f.read())
 srs = pd.Series([j for i in contents for j in i.split('\n')])
 seq = pd.Series([j for i in contents for j in i.split('\n')]).drop(srs.index[0])
-#srs.index[0]=support, resilience
+
 transition = seq.str.split(', ').tolist()
 support = float(srs.str.split(',').str.get(0)[0])
 resilience = float(srs.str.split(',').str.get(1)[0])
@@ -21,10 +16,8 @@ ls = []
 for i in transition:
     ls.append([int(x) for x in i])
 
-sequences = np.asarray(ls)   
+sequences = np.asarray(ls)
 
-
-# In[2]:
 
 #Creates a list of frequent 1-itemsets
 def find_freq_one_item(dataSet):
@@ -36,8 +29,6 @@ def find_freq_one_item(dataSet):
     C1.sort()
     return list(map(frozenset, C1))
 
-
-# In[3]:
 
 # Scans dataset to find the number of times the subsets in the frequent k-itemset appear
 # Returns a list with the itemsets satisfying minsup, and the support for all data stored in a dict
@@ -57,14 +48,12 @@ def scanD(D, Ck, minSupport):
     return itemsets, suppCount
 
 
-# In[4]:
-
 # Creates Ck
 def aprioriGen(Lk, k):
     Ck = []
     all_Lk = len(Lk)
     for i in range(all_Lk):
-        for j in range(i+1, all_Lk): 
+        for j in range(i+1, all_Lk):
             L1 = list(Lk[i])[:k-2]
             L2 = list(Lk[j])[:k-2]
             L1.sort()
@@ -73,8 +62,6 @@ def aprioriGen(Lk, k):
                 Ck.append(Lk[i] | Lk[j]) #set union
     return Ck
 
-
-# In[5]:
 
 # Implements Apriori algorithm
 def apriori(dataSet, minSupport):
@@ -88,23 +75,17 @@ def apriori(dataSet, minSupport):
         Lk, supK = scanD(D, Ck, minSupport)#scan DB to get Lk
         supportData.update(supK)
         L.append(Lk)
-        k += 1  
+        k += 1
     return L, supportData
 
 
-# In[6]:
-
 freqlist, suppData1 = apriori(ls, support)
 
-
-# In[7]:
 
 def contains_sublist(lst, sublist):
     n = len(sublist)
     return any(set(sublist).issubset(lst[i:i+n]) for i in range(len(lst)-n+1))
 
-
-# In[8]:
 
 def combinations(iterable, r):
     # combinations('ABCD', 2) --> AB AC AD BC BD CD
@@ -127,8 +108,6 @@ def combinations(iterable, r):
         yield tuple(pool[i] for i in indices)
 
 
-# In[9]:
-
 def count_min(S, item):
     # Create combinations of all possible sized sequences in sequence (with correct order)
     matches = {}
@@ -141,8 +120,6 @@ def count_min(S, item):
     return len(count)
 
 
-# In[10]:
-
 # Create item list of all the frequent itemsets
 itemlists = {}
 rk = 0
@@ -154,13 +131,9 @@ for i in freqlist:
         rk += 1
 
 
-# In[11]:
-
 # Find the minimum number of outliers and save values to a matrix with default values of -1
 min_outliers = np.full((len(sequences), len(itemlists)), -1) # matrix(3 rows,19 columns) of -1
 
-
-# In[12]:
 
 for idx in range(len(itemlists)):  # Index of Frequent Itemsets = 0,...,18
     for line in range(len(sequences)): # line = 0,1,2
@@ -168,11 +141,9 @@ for idx in range(len(itemlists)):  # Index of Frequent Itemsets = 0,...,18
                                          # Initialize list of number of outliers in each interval
             if (len(itemlists[idx]) == 1) or contains_sublist(sequences[line],itemlists[idx]):
                 min_outliers[line][idx] = 0          # if its a 1-itemset or no numbers in between, there are zero outliers
-            else: 
-                min_outliers[line][idx]= count_min(sequences[line],itemlists[idx])                    
+            else:
+                min_outliers[line][idx]= count_min(sequences[line],itemlists[idx])
 
-
-# In[13]:
 
 window = np.zeros(len(itemlists))
 for idx in range(len(itemlists)):  # Index of Frequent Itemsets = 0,...,18
@@ -181,22 +152,12 @@ for idx in range(len(itemlists)):  # Index of Frequent Itemsets = 0,...,18
             window[idx] += 1
 
 
-# In[14]:
-
 resilient = []
-for idx in range(len(itemlists)): 
+for idx in range(len(itemlists)):
     if (window[idx]/len(sequences) >= support):
         resilient.append(itemlists[idx])
 
 
-# In[15]:
-
 with open("output.txt", "w") as f:
     for item in resilient:
         f.write("%s\n" % str(item)[1:-1])
-
-
-# In[ ]:
-
-
-
