@@ -66,7 +66,8 @@ def preprocess(data):
     # tuples of the <index>:<value>...<index>:<value> of each line of data as type string
     tups = []
     for line in range(len(data)):
-        tups.append(tuple(re.match("(.*):(.*)", data[line][2:]).group().replace(":",",").replace(" ",",").split(",")))
+        tups.append(tuple(re.match("(.*):(.*)", data[line][2:])\
+        .group().replace(":",",").replace(" ",",").split(",")))
 
     return labels, total, tups
 
@@ -193,8 +194,8 @@ def create_tree(tuples, labels, attributes, depth):
     """
     Returns a new decision tree based on the examples given.
     """
+    random.seed(1)
     max_depth = depth
-
     dclasses, dvalues, new_attributes, a_names, a_values = get_count(labels, tuples)
 #     Feature Bagging (F = k)
 #     Let F be the number of attributes to be used to determine the split at each node
@@ -235,6 +236,7 @@ def bootstrap_sample(data):
     """
     Returns a sampling of training data with replacement
     """
+    random.seed(1)
     return random.choices(data, k = int(len(data)*0.9))
 
 
